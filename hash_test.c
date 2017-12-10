@@ -7,10 +7,12 @@
 #include "jhash.h"
 #include "xxhash.h"
 
+#define PAGE_SIZE (4*1024)
+
 int main() {
-        uint8_t PAGE[4*1024];
-        uint32_t hash;
-        uint64_t hash64;
+        uint8_t PAGE[PAGE_SIZE];
+        volatile uint32_t hash;
+        volatile uint64_t hash64;
         uint64_t iter = 1024;
         uint64_t i;
         srand(time(NULL));
@@ -29,7 +31,7 @@ int main() {
         }
         end = clock()*1000000/CLOCKS_PER_SEC;
 
-        printf("jhash2:   0x%" PRIx32 "\t\ttime: %lu ms,\tth: %f MiB/s\n", hash, (end - start)/1000, sizeof(PAGE)*iter*1.0/(end - start));
+        printf("jhash2:   0x%" PRIx32 "\t\ttime: %6lu ms, th: %.2f MiB/s\n", hash, (end - start)/1000, sizeof(PAGE)*iter*1.0/(end - start));
 
         start = clock()*1000000/CLOCKS_PER_SEC;
         for (i = 0; i < iter; i++) {
@@ -38,7 +40,7 @@ int main() {
         end = clock()*1000000/CLOCKS_PER_SEC;
 
 
-        printf("xxhash32: 0x%" PRIx32 "\t\ttime: %lu ms,\tth: %f MiB/s\n", hash, (end - start)/1000, sizeof(PAGE)*iter*1.0/(end - start));
+        printf("xxhash32: 0x%" PRIx32 "\t\ttime: %6lu ms, th: %.2f MiB/s\n", hash, (end - start)/1000, sizeof(PAGE)*iter*1.0/(end - start));
 
         start = clock()*1000000/CLOCKS_PER_SEC;
         for (i = 0; i < iter; i++) {
@@ -46,7 +48,7 @@ int main() {
         }
         end = clock()*1000000/CLOCKS_PER_SEC;
 
-        printf("xxhash64: 0x%" PRIx64 "\ttime: %lu ms,\tth: %f MiB/s\n", hash64, (end - start)/1000, sizeof(PAGE)*iter*1.0/(end - start));
+        printf("xxhash64: 0x%" PRIx64 "\ttime: %6lu ms, th: %.2f MiB/s\n", hash64, (end - start)/1000, sizeof(PAGE)*iter*1.0/(end - start));
 
         return 0;
 }
