@@ -1,4 +1,5 @@
 #include "inttypes.h"
+#include "string.h"
 
 /**
  * rol32 - rotate a 32-bit value left
@@ -40,6 +41,61 @@ static inline uint32_t rol32(uint32_t word, unsigned int shift)
 
 /* An arbitrary initial parameter */
 #define JHASH_INITVAL		0xdeadbeef
+
+uint32_t __get_unaligned_cpuint32_t(const uint8_t *k) {
+        uint32_t ret;
+        memcpy(&ret, k, 4);
+        return ret;
+}
+
+/* jhash - hash an arbitrary key
+ * @k: sequence of bytes as key
+ * @length: the length of the key
+ * @initval: the previous hash, or an arbitray value
+ *
+ * The generic version, hashes an arbitrary sequence of bytes.
+ * No alignment or length assumptions are made about the input key.
+ *
+ * Returns the hash value of the key. The result depends on endianness.
+ */
+static inline uint32_t jhash(const void *key, uint32_t length, uint32_t initval)
+{
+	uint32_t a, b, c;
+	const uint8_t *k = (uint8_t *) key;
+
+	/* Set up the internal state */
+	a = b = c = JHASH_INITVAL + length + initval;
+
+	/* All but the last block: affect some 32 bits of (a,b,c) */
+	while (length > 12) {
+		a += __get_unaligned_cpuint32_t(k);
+		b += __get_unaligned_cpuint32_t(k + 4);
+		c += __get_unaligned_cpuint32_t(k + 8);
+		__jhash_mix(a, b, c);
+		length -= 12;
+		k += 12;
+	}
+	/* Last block: affect all 32 bits of (c) */
+	switch (length) {
+	case 12: c += (uint32_t)k[11]<<24;	/* fall through */
+	case 11: c += (uint32_t)k[10]<<16;	/* fall through */
+	case 10: c += (uint32_t)k[9]<<8;	/* fall through */
+	case 9:  c += k[8];		/* fall through */
+	case 8:  b += (uint32_t)k[7]<<24;	/* fall through */
+	case 7:  b += (uint32_t)k[6]<<16;	/* fall through */
+	case 6:  b += (uint32_t)k[5]<<8;	/* fall through */
+	case 5:  b += k[4];		/* fall through */
+	case 4:  a += (uint32_t)k[3]<<24;	/* fall through */
+	case 3:  a += (uint32_t)k[2]<<16;	/* fall through */
+	case 2:  a += (uint32_t)k[1]<<8;	/* fall through */
+	case 1:  a += k[0];
+		 __jhash_final(a, b, c);
+	case 0: /* Nothing left to add */
+		break;
+	}
+
+	return c;
+}
 
 /* jhash2 - hash an array of uint32_t's
  * @k: the key which must be an array of uint32_t's
