@@ -20,6 +20,7 @@ void run_test(size_t len) {
         uint64_t hash64 = 0;
         clock_t start, end;
 
+        printf("- - -\n");
         printf("input size: %lu, loop count: %lu\n", len, iter);
 
         if (len % 4 == 0) {
