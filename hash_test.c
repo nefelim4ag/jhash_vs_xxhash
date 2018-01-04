@@ -12,7 +12,7 @@
 
 #define PAGE_SIZE (1024)
 uint64_t iter = 1024;
-static uint32_t PAGE[PAGE_SIZE];
+uint32_t PAGE[PAGE_SIZE];
 
 void run_test(size_t len) {
         uint64_t i;
@@ -66,6 +66,12 @@ void run_test(size_t len) {
         printf("xxhash64: 0x%" PRIx64 "\ttime: %6lu ms, th: %.2f MiB/s\n", hash64, (end - start)/1000, len*iter*1.0/(end - start));
 }
 
+void reinit_page(void) {
+        uint32_t i;
+        for (i = 0; i < sizeof(PAGE)/4; i++)
+                PAGE[i] = rand()*rand();
+}
+
 int main() {
         uint64_t i;
         uint32_t input_lenths[11] = {
@@ -77,10 +83,8 @@ int main() {
         srand(time(NULL));
         iter *= 1024*256;
 
-        for (i = 0; i < sizeof(PAGE)/4; i++)
-                PAGE[i] = rand();
-
         for (i = 0; i < 11; i++) {
+                reinit_page();
                 run_test(input_lenths[i]);
         }
         return 0;
